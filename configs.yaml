@@ -1,0 +1,14 @@
+base:
+  sources:
+    default:
+      path: "/usr/src/linux-test"
+configs:
+  MTD_CFI:
+    gemini_defconfig:
+      need: true
+  SECCOMP:
+    harden: true
+  STACKPROTECTOR:
+    harden: true
+  STACKPROTECTOR_STRONG:
+    harden: true
