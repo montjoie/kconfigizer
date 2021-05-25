@@ -251,7 +251,7 @@ def main(stdscr):
             if p >= len(kconf.unique_defined_syms) - 1:
                 p = len(kconf.unique_defined_syms) - 1
             for sym in kconf.unique_defined_syms:
-                if not sym.assignable:
+                if not sym.assignable and sym.type != 47 and sym.type != 27:
                     continue
                 if "notno" in filters:
                     if sym.str_value == 'n':
@@ -303,7 +303,7 @@ def main(stdscr):
             search_firstfound = -1
             search_found = 0
             for sym in kconf.unique_defined_syms:
-                if not sym.assignable:
+                if not sym.assignable and sym.type != 47 and sym.type != 27:
                     continue
                 if "notno" in filters:
                     if sym.str_value == 'n':
@@ -360,16 +360,19 @@ def main(stdscr):
             swin.erase()
             p = 0 
             offset = 0
-        if c == ord("s"):
+        if c == ord("s") or c == ord("S"):
             # save result
             with open('%s/config.out' % configdir, 'w') as rfile:
                 for sym in kconf.unique_defined_syms:
-                    if not sym.assignable:
+                    if not sym.assignable and sym.type != 47 and sym.type != 27:
+                        #rfile.write('IGNORE %s %d\n' % (sym.name, sym.type))
                         continue
-                    if sym.user_value is None:
+                    if sym.user_value is None and c == ord("s"):
                         continue
                     if sym.str_value == 'n':
                         rfile.write("# CONFIG_%s is not set\n" % sym.name)
+                    elif sym.type == 47:
+                        rfile.write('CONFIG_%s="%s"\n' % (sym.name, sym.str_value))
                     else:
                         rfile.write("CONFIG_%s=%s\n" % (sym.name, sym.str_value))
         if c == ord("/"):
@@ -408,40 +411,31 @@ if not args.debug:
     wrapper(main)
     sys.exit(0)
 
-print("START")
+print("START in %s" % sourcedir)
 
-opwd = os.getcwd()
-print(opwd)
-
-os.environ["srctree"] = '.'
-os.environ["ARCH"] = 'x86_64'
-os.environ["ARCH"] = 'arm'
-os.environ["SRCARCH"] = 'x86'
-os.environ["SRCARCH"] = 'arm'
-os.environ["RUSTC"] = 'rustc'
-os.environ["CC"] = 'gcc'
-os.environ["LD"] = 'ld'
-os.environ["HOSTCC"] = 'gcc'
-os.environ["HOSTCXX"] = 'g++'
-os.environ["KERNELVERSION"] = "5.12.0"
-ret = subprocess.check_output("make kernelversion", shell=True)
-os.environ["KERNELVERSION"] = ret.decode("UTF8")
-
-kconf = kconfiglib.Kconfig(args.kconfig, suppress_traceback=False)
-kconf.load_config("arch/arm/configs/gemini_defconfig")
-
+kconf = kconfiglib.Kconfig("Kconfig", suppress_traceback=False)
+kconf.load_config("arch/%s/configs/%s" % (args.arch, args.defconfig))
+with open('%s/%s-%s.load2' % (configdir, args.arch, args.defconfig), 'w') as rfile:
+    for sym in kconf.unique_defined_syms:
+        if sym.user_value is None:
+            if not sym.assignable:
+                continue
+            continue
+        if sym.str_value == 'n':
+            rfile.write("# CONFIG_%s is not set\n" % sym.name)
+        elif sym.type == 47:
+            rfile.write('CONFIG_%s="%s"\n' % (sym.name, sym.str_value))
+        else:
+            rfile.write("CONFIG_%s=%s\n" % (sym.name, sym.str_value))
 
 print(len(kconf.unique_defined_syms))
 for sym in kconf.unique_defined_syms:
-    if sym.name == "WIRELESS":
-        print(dprint(sym.rev_dep))
-    continue
     if sym.user_value is None:
         if sym.assignable:
             toto = 1
-            #print("  %s %s" % (sym.name, sym.str_value))
+            print("  %s %s" % (sym.name, sym.str_value))
         continue
-    #print("%s %s" % (sym.name, sym.str_value))
+    print("%s %s" % (sym.name, sym.str_value))
     if sym.rev_dep:
         if type(sym.rev_dep) == kconfiglib.Symbol:
             if sym.rev_dep.name == "n":
