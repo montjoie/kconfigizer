@@ -253,6 +253,8 @@ def main(stdscr):
             for sym in kconf.unique_defined_syms:
                 if not sym.assignable and sym.type != 47 and sym.type != 27:
                     continue
+                if sym.str_value == "":
+                    continue
                 if "notno" in filters:
                     if sym.str_value == 'n':
                         continue
@@ -304,6 +306,8 @@ def main(stdscr):
             search_found = 0
             for sym in kconf.unique_defined_syms:
                 if not sym.assignable and sym.type != 47 and sym.type != 27:
+                    continue
+                if sym.str_value == "":
                     continue
                 if "notno" in filters:
                     if sym.str_value == 'n':
@@ -369,6 +373,8 @@ def main(stdscr):
                         continue
                     if sym.user_value is None and c == ord("s"):
                         continue
+                    if sym.str_value == "":
+                        continue
                     if sym.str_value == 'n':
                         rfile.write("# CONFIG_%s is not set\n" % sym.name)
                     elif sym.type == 47:
@@ -431,7 +437,7 @@ with open('%s/%s-%s.load2' % (configdir, args.arch, args.defconfig), 'w') as rfi
 print(len(kconf.unique_defined_syms))
 for sym in kconf.unique_defined_syms:
     if sym.user_value is None:
-        if sym.assignable:
+        if sym.assignable or sym.type == 27:
             toto = 1
             print("  %s %s" % (sym.name, sym.str_value))
         continue

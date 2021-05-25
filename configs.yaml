@@ -1,9 +1,21 @@
 base:
   sources:
     default:
-      path: "/usr/src/linux-test"
+      path: /usr/src/linux-test
 configs:
+  GEMINI_ETHERNET:
+    gemini_defconfig:
+      need: true
   MTD_CFI:
+    gemini_defconfig:
+      need: true
+  MTD_PHYSMAP_GEMINI:
+    gemini_defconfig:
+      need: true
+  NET_VENDOR_CORTINA:
+    gemini_defconfig:
+      need: true
+  SATA_GEMINI:
     gemini_defconfig:
       need: true
   SECCOMP:
