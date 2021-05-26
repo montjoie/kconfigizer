@@ -10,7 +10,7 @@ import yaml
 import curses
 from curses import wrapper
 import kconfiglib
-from kconfiglib import EQUAL, AND, OR, UNEQUAL, STRING, HEX, INT
+from kconfiglib import EQUAL, AND, OR, UNEQUAL, STRING, HEX, INT, LESS_EQUAL, expr_value, NOT, expr_str, Symbol, STR_TO_TRI
 
 L_RED = 1
 L_GREEN = 2
@@ -67,6 +67,20 @@ os.environ["HOSTCXX"] = 'g++'
 os.environ["KERNELVERSION"] = "5.12.0"
 ret = subprocess.check_output("make kernelversion", shell=True)
 os.environ["KERNELVERSION"] = ret.decode("UTF8")
+
+def my_sc_expr_str(sc):
+    """
+    Standard symbol/choice printing function. Uses plain Kconfig syntax, and
+    displays choices as <choice> (or <choice NAME>, for named choices).
+
+    See expr_str().
+    """
+    if sc.__class__ is Symbol:
+        if sc.is_constant and sc.name not in STR_TO_TRI:
+            return '"{}"'.format(escape(sc.name + "xx"))
+        return sc.name + ":" + sc.str_value
+
+    return "<choice {}>".format(sc.name) if sc.name else "<choice>"
 
 # THIS IS MADNESS
 def dprint(x):
@@ -131,8 +145,17 @@ def dprint(x):
         if s1.str_value != s2.str_value:
             return "%s = %s" % (s1.name, s2.name)
         return ""
+    elif x[0] == LESS_EQUAL:
+        b = expr_value(x)
+        if b == 2:
+            fs = "%s:%s <= %s" % (s1.name, s1.str_value, s2.str_value)
+        else:
+            fs = "%s:%s > %s" % (s1.name, s1.str_value, s2.str_value)
+        return fs
     else:
         print("UNKNOWN %d" % x[0])
+        if args.debug:
+            sys.exit(0)
     return "ERROR"
 
 def prdep(sym):
@@ -161,6 +184,9 @@ def deprint(x):
             st1 = "!%s" % s.name
         #print("ST1: %s" % st1)
     if len(x) == 2:
+        if x[0] == NOT:
+            print(x)
+            return "%s!=%s" % (s.name, s.str_value)
         return st1
     s2 = x[2]
     if type(x[2]) == kconfiglib.Choice:
@@ -201,8 +227,8 @@ def directdep(sym):
     if type(sym.direct_dep) == kconfiglib.Symbol:
         if sym.direct_dep.name == 'y':
             return ""
-        return "DEPENDS on %s:%s" % (sym.direct_dep.name, sym.str_value)
-    return deprint(sym.direct_dep)
+        return "DEPENDS on %s:%s" % (sym.direct_dep.name, sym.direct_dep.str_value)
+    return "DEPENDS on %s" % deprint(sym.direct_dep)
 
 def config_set(name, typ, defconfig, xset):
     if name not in configs["configs"]:
@@ -225,6 +251,19 @@ def config_get(name, defconfig, typ):
     if typ in configs["configs"][name]:
         return configs["configs"][name][typ]
     return False
+
+def configable(sym):
+    if sym.user_value is None:
+        if sym.assignable:
+            return True
+        if args.debug:
+            print("========================")
+            print("NOT %s:%s" % (sym.name, sym.str_value))
+            print(sym.assignable)
+            print(directdep(sym))
+        #if sym.assignable or sym.type == 27:
+        return False
+    return True
 
 def main(stdscr):
     cmd = 0
@@ -323,7 +362,8 @@ def main(stdscr):
             for sym in kconf.unique_defined_syms:
                 #if not sym.assignable and sym.type != STRING and sym.type != HEX:
                 #    continue
-                if sym.str_value == "":
+                #if sym.str_value == "":
+                if not configable(sym):
                     continue
                 if "notno" in filters:
                     if sym.str_value == 'n':
@@ -337,8 +377,14 @@ def main(stdscr):
                     cur = sym.name
                     ipad.erase()
                     ipad.addstr(10, 0, str(sym))
-                    ipad.addstr(1, 0, prdep(sym))
-                    ipad.addstr(5, 0, directdep(sym))
+                    #ipad.addstr(1, 0, prdep(sym))
+                    #ipad.addstr(5, 0, directdep(sym))
+                    st = expr_str(sym.rev_dep, sc_expr_str_fn=my_sc_expr_str)
+                    if st != "n:n":
+                        ipad.addstr(1, 0 , "SELECTED by %s" % st)
+                    st = expr_str(sym.direct_dep, sc_expr_str_fn=my_sc_expr_str)
+                    if st != "y:y":
+                        ipad.addstr(5, 0 , "DEPEND ON %s" % st)
                 color = L_WHITE
                 if config_get(sym.name, defconfig, "debug"):
                     color = L_YELLOW
@@ -346,8 +392,11 @@ def main(stdscr):
                     color = L_GREEN
                 if config_get(sym.name, defconfig, "need"):
                     color = L_RED
+                cole = 0
+                if sym.str_value == 'y':
+                    cole = curses.A_BOLD
                 pad.addstr(y, 0, buf)
-                pad.addstr(y, x, "%s %s  " % (sym.name, sym.str_value), curses.color_pair(color))
+                pad.addstr(y, x, "%s %s  " % (sym.name, sym.str_value), curses.color_pair(color) + cole)
                 y += 1
             wmax = y
 
@@ -384,7 +433,8 @@ def main(stdscr):
             for sym in kconf.unique_defined_syms:
                 #if not sym.assignable and sym.type != STRING and sym.type != HEX:
                 #    continue
-                if sym.str_value == "":
+                #if sym.str_value == "":
+                if not configable(sym):
                     continue
                 if "notno" in filters:
                     if sym.str_value == 'n':
@@ -450,8 +500,8 @@ def main(stdscr):
                     #    continue
                     if sym.user_value is None:
                         continue
-                    if sym.str_value == "":
-                        continue
+                    #if sym.str_value == "":
+                    #    continue
                     if sym.str_value == 'n':
                         rfile.write("# CONFIG_%s is not set\n" % sym.name)
                     elif sym.type == 47:

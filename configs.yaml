@@ -8,7 +8,11 @@ configs:
       need: true
   BLK_DEBUG_FS:
     debug: true
+  BOOT_PRINTK_DELAY:
+    debug: true
   DEBUG_AID_FOR_SYZBOT:
+    debug: true
+  DEBUG_BUGVERBOSE:
     debug: true
   DEBUG_FS:
     debug: true
@@ -18,21 +22,77 @@ configs:
     debug: true
   DEBUG_FS_DISALLOW_MOUNT:
     debug: true
+  DEBUG_HIGHMEM:
+    debug: true
+  DEBUG_INFO:
+    debug: true
+  DEBUG_INFO_BTF:
+    debug: true
+  DEBUG_INFO_COMPRESSED:
+    debug: true
+  DEBUG_INFO_DWARF4:
+    debug: true
+  DEBUG_INFO_DWARF5:
+    debug: true
+  DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT:
+    debug: true
+  DEBUG_INFO_REDUCED:
+    debug: true
+  DEBUG_INFO_SPLIT:
+    debug: true
   DEBUG_IRQFLAGS:
     debug: true
   DEBUG_KERNEL:
+    debug: true
+  DEBUG_KMEMLEAK:
+    debug: true
+  DEBUG_KMEMLEAK_AUTO_SCAN:
+    debug: true
+  DEBUG_KMEMLEAK_DEFAULT_OFF:
+    debug: true
+  DEBUG_KMEMLEAK_TEST:
     debug: true
   DEBUG_LL_INCLUDE:
     debug: true
   DEBUG_MISC:
     debug: true
+  DEBUG_NOMMU_REGIONS:
+    debug: true
+  DEBUG_OBJECTS:
+    debug: true
+  DEBUG_OBJECTS_FREE:
+    debug: true
+  DEBUG_OBJECTS_PERCPU_COUNTER:
+    debug: true
+  DEBUG_OBJECTS_RCU_HEAD:
+    debug: true
+  DEBUG_OBJECTS_SELFTEST:
+    debug: true
+  DEBUG_OBJECTS_TIMERS:
+    debug: true
+  DEBUG_OBJECTS_WORK:
+    debug: true
   DEBUG_SECTION_MISMATCH:
+    debug: true
+  DEBUG_SLAB:
     debug: true
   DEBUG_STACK_USAGE:
     debug: true
   DEBUG_TIMEKEEPING:
     debug: true
   DEBUG_USER:
+    debug: true
+  DEBUG_VIRTUAL:
+    debug: true
+  DEBUG_VM:
+    debug: true
+  DEBUG_VM_PGFLAGS:
+    debug: true
+  DEBUG_VM_PGTABLE:
+    debug: true
+  DEBUG_VM_RB:
+    debug: true
+  DEBUG_VM_VMACACHE:
     debug: true
   DEBUG_WX:
     debug: true
@@ -50,6 +110,8 @@ configs:
     debug: true
   FTRACE:
     debug: true
+  GDB_SCRIPTS:
+    debug: true
   GEMINI_ETHERNET:
     gemini_defconfig:
       need: true
@@ -66,6 +128,10 @@ configs:
     debug: true
   IOMMU_DEBUGFS:
     debug: true
+  KCSAN:
+    debug: true
+  KGDB:
+    debug: true
   LOCK_DEBUGGING_SUPPORT:
     debug: true
   MTD_CFI:
@@ -77,6 +143,10 @@ configs:
   NET_VENDOR_CORTINA:
     gemini_defconfig:
       need: true
+  PAGE_OWNER:
+    debug: true
+  PAGE_POISONING:
+    debug: true
   PATA_FTIDE010:
     gemini_defconfig:
       need: true
@@ -114,6 +184,8 @@ configs:
     debug: true
   STACK_VALIDATION:
     debug: true
+  UBSAN:
+    debug: true
   USB_STORAGE_DEBUG:
     debug: true
   VIDEO_ZORAN:
@@ -125,3 +197,7 @@ configs:
   VIDEO_ZORAN_ZR36060:
     zoran_defconfig:
       need: true
+  VMLINUX_MAP:
+    debug: true
+  VMLINUX_VALIDATION:
+    debug: true
