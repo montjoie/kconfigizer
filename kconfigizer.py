@@ -87,10 +87,10 @@ def dprint(x):
         if s.str_value == s.name:
             first = True
             st1 = "!%s" % s.name
-        if x[0] == 2 and not first:
+        if x[0] == AND and not first:
             return ""
         #print("ST1: %s" % st1)
-    if len(x) == AND:
+    if len(x) == 2:
         if first:
             return st1
         return ""
@@ -143,6 +143,66 @@ def prdep(sym):
             return ""
         return "SELECTED by %s:%s" % (sym.rev_dep.name, sym.str_value)
     return dprint(sym.rev_dep)
+
+def deprint(x):
+    if type(x) == kconfiglib.Choice:
+        return "%s:%s" % (x.name, x.str_value)
+    s1 = x[1]
+    if type(x[1]) == tuple:
+        st1 = deprint(x[1])
+    if type(x[1]) == kconfiglib.Symbol:
+        s = x[1]
+        if args.debug:
+            print("depend on %s %s" % (s.name, s.str_value))
+        if s.str_value == 'n':
+            st1 = "%s:%s" % (s.name, s.str_value)
+        st1 = "%s:%s" % (s.name, s.str_value)
+        if s.str_value == s.name:
+            st1 = "!%s" % s.name
+        #print("ST1: %s" % st1)
+    if len(x) == 2:
+        return st1
+    s2 = x[2]
+    if type(x[2]) == kconfiglib.Choice:
+        st2 = "%s:%s" % (x[2].name, x[2].str_value)
+    if type(x[2]) == kconfiglib.Symbol:
+        s = x[2]
+        if args.debug:
+            print("2 depend on %s %s" % (s.name, s.str_value))
+        if s.str_value == 'n':
+            st2 = "%s:%s" % (s.name, s.str_value)
+        st2 = "%s:%s" % (s.name, s.str_value)
+        if s.str_value == s.name:
+            st2 = "!%s" % s.name
+    if type(x[2]) == tuple:
+        st2 = deprint(x[2])
+    if x[0] == AND:
+        fs = st1 + " AND " + st2
+        return fs
+    elif x[0] == OR:
+        fs = st1 + " OR " + st2
+        return fs
+    elif x[0] == EQUAL:
+        if x[1].str_value != s2.str_value:
+            return "%s = %s" % (s1.name, s2.name)
+        return ""
+    elif x[0] == UNEQUAL:
+        if x[1].str_value == s2.str_value:
+            return "%s = %s" % (s1.name, s2.name)
+        return ""
+    else:
+        print("UNKNOWN %d" % x[0])
+    return "ERROR"
+
+
+def directdep(sym):
+    if not sym.direct_dep:
+        return ""
+    if type(sym.direct_dep) == kconfiglib.Symbol:
+        if sym.direct_dep.name == 'y':
+            return ""
+        return "DEPENDS on %s:%s" % (sym.direct_dep.name, sym.str_value)
+    return deprint(sym.direct_dep)
 
 def config_set(name, typ, defconfig, xset):
     if name not in configs["configs"]:
@@ -253,6 +313,7 @@ def main(stdscr):
                 kconf = kconfiglib.Kconfig("Kconfig", suppress_traceback=True, warn_to_stderr=False)
                 kconf.load_config("arch/%s/configs/%s" % (srcarch, defconfig))
                 pad = curses.newpad(len(kconf.unique_defined_syms), 200)
+                ipad = curses.newpad(200, 200)
             swin.addstr(2, 0, "Choose config: (%d) curr=%s" % (len(kconf.unique_defined_syms), cur))
             y = 0
             if p < 0:
@@ -274,7 +335,10 @@ def main(stdscr):
                 if p + offset == y:
                     buf = "x "
                     cur = sym.name
-                    swin.addstr(1, 0, prdep(sym))
+                    ipad.erase()
+                    ipad.addstr(10, 0, str(sym))
+                    ipad.addstr(1, 0, prdep(sym))
+                    ipad.addstr(5, 0, directdep(sym))
                 color = L_WHITE
                 if config_get(sym.name, defconfig, "debug"):
                     color = L_YELLOW
@@ -295,6 +359,8 @@ def main(stdscr):
         swin.noutrefresh()
         if pad:
             pad.noutrefresh(offset, 0, 4, 0, rows - 1, cols - 1)
+        if ipad:
+            ipad.noutrefresh(0, 0, 5, 50, rows - 1, cols - 1)
         curses.doupdate()
 
         c = stdscr.getch()
@@ -336,7 +402,7 @@ def main(stdscr):
                 searchn = 1
             insearch = 3
         if insearch == 1:
-            if c > 0 and c < 256 and (chr(c).isalpha() or c == ord("_")):
+            if c > 0 and c < 256 and (chr(c).isalnum() or c == ord("_")):
                 search += chr(c)
             c = -1
         if c == 27 or c == ord('q'):

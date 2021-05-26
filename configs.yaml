@@ -24,7 +24,11 @@ configs:
     debug: true
   DEBUG_LL_INCLUDE:
     debug: true
+  DEBUG_MISC:
+    debug: true
   DEBUG_SECTION_MISMATCH:
+    debug: true
+  DEBUG_STACK_USAGE:
     debug: true
   DEBUG_TIMEKEEPING:
     debug: true
@@ -44,6 +48,8 @@ configs:
     debug: true
   DYNAMIC_DEBUG_CORE:
     debug: true
+  FTRACE:
+    debug: true
   GEMINI_ETHERNET:
     gemini_defconfig:
       need: true
@@ -60,6 +66,8 @@ configs:
     debug: true
   IOMMU_DEBUGFS:
     debug: true
+  LOCK_DEBUGGING_SUPPORT:
+    debug: true
   MTD_CFI:
     gemini_defconfig:
       need: true
@@ -74,6 +82,8 @@ configs:
       need: true
   PM_DEBUG:
     debug: true
+  RCU_TRACE:
+    debug: true
   REGULATOR_DEBUG:
     debug: true
   RTC_DEBUG:
@@ -81,10 +91,16 @@ configs:
   SATA_GEMINI:
     gemini_defconfig:
       need: true
+  SCHEDSTATS:
+    debug: true
+  SCHED_INFO:
+    debug: true
   SECCOMP:
     harden: true
   SECCOMP_CACHE_DEBUG:
     debug: true
+  SECCOMP_FILTER:
+    harden: true
   SERIAL_8250:
     gemini_defconfig:
       need: true
@@ -94,5 +110,18 @@ configs:
     harden: true
   STACKPROTECTOR_STRONG:
     harden: true
+  STACKTRACE:
+    debug: true
+  STACK_VALIDATION:
+    debug: true
   USB_STORAGE_DEBUG:
     debug: true
+  VIDEO_ZORAN:
+    zoran_defconfig:
+      need: true
+  VIDEO_ZORAN_DC10:
+    zoran_defconfig:
+      need: true
+  VIDEO_ZORAN_ZR36060:
+    zoran_defconfig:
+      need: true
