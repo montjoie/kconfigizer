@@ -3,7 +3,13 @@
 Minimize or harden you config faster than light
 
 ## install
-need kconfiglib and ncurses
+need kconfiglib, yaml and ncurses
+
+## design
+* Everything in line, faster view, no submenu
+* highlight debug CONFIGs for easy removing
+* highlight harden/security options
+* custom highlight of needed options per defconfig (for preventing removing)
 
 ## Usage
 ./kconfigizer
@@ -22,3 +28,5 @@ need kconfiglib and ncurses
 * F5 filter only not "=n" configs
 * search via / (next=',')
 * s save result in config.out
+* S save whole config in config.out
+* o overwrite defconfig

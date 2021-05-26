@@ -10,6 +10,7 @@ import yaml
 import curses
 from curses import wrapper
 import kconfiglib
+from kconfiglib import EQUAL, AND, OR, UNEQUAL, STRING, HEX, INT
 
 L_RED = 1
 L_GREEN = 2
@@ -67,9 +68,11 @@ os.environ["KERNELVERSION"] = "5.12.0"
 ret = subprocess.check_output("make kernelversion", shell=True)
 os.environ["KERNELVERSION"] = ret.decode("UTF8")
 
+# THIS IS MADNESS
 def dprint(x):
     first = False
     second = False
+    s1 = x[1]
     if type(x[1]) == tuple:
         st1 = dprint(x[1])
         if st1 != "":
@@ -87,10 +90,11 @@ def dprint(x):
         if x[0] == 2 and not first:
             return ""
         #print("ST1: %s" % st1)
-    if len(x) == 2:
+    if len(x) == AND:
         if first:
             return st1
         return ""
+    s2 = x[2]
     if type(x[2]) == kconfiglib.Symbol:
         s = x[2]
         if args.debug:
@@ -105,15 +109,12 @@ def dprint(x):
         st2 = dprint(x[2])
         if st2 != "":
             second = True
-    if x[0] == 2:
-        #print("AND")
+    if x[0] == AND:
         if not second:
             return ""
         fs = st1 + " AND " + st2
-        #print("DEBUG: %s" % fs)
         return fs
-    elif x[0] == 39:
-        #print("OR")
+    elif x[0] == OR:
         if not first and not second:
             return ""
         if not first and second:
@@ -122,6 +123,14 @@ def dprint(x):
             return st1
         fs = st1 + " OR " + st2
         return fs
+    elif x[0] == EQUAL:
+        if s1.str_value == s2.str_value:
+            return "%s = %s" % (s1.name, s2.name)
+        return ""
+    elif x[0] == UNEQUAL:
+        if s1.str_value != s2.str_value:
+            return "%s = %s" % (s1.name, s2.name)
+        return ""
     else:
         print("UNKNOWN %d" % x[0])
     return "ERROR"
@@ -251,8 +260,8 @@ def main(stdscr):
             if p >= len(kconf.unique_defined_syms) - 1:
                 p = len(kconf.unique_defined_syms) - 1
             for sym in kconf.unique_defined_syms:
-                if not sym.assignable and sym.type != 47 and sym.type != 27:
-                    continue
+                #if not sym.assignable and sym.type != STRING and sym.type != HEX:
+                #    continue
                 if sym.str_value == "":
                     continue
                 if "notno" in filters:
@@ -267,6 +276,8 @@ def main(stdscr):
                     cur = sym.name
                     swin.addstr(1, 0, prdep(sym))
                 color = L_WHITE
+                if config_get(sym.name, defconfig, "debug"):
+                    color = L_YELLOW
                 if config_get(sym.name, defconfig, "harden"):
                     color = L_GREEN
                 if config_get(sym.name, defconfig, "need"):
@@ -305,8 +316,8 @@ def main(stdscr):
             search_firstfound = -1
             search_found = 0
             for sym in kconf.unique_defined_syms:
-                if not sym.assignable and sym.type != 47 and sym.type != 27:
-                    continue
+                #if not sym.assignable and sym.type != STRING and sym.type != HEX:
+                #    continue
                 if sym.str_value == "":
                     continue
                 if "notno" in filters:
@@ -364,13 +375,30 @@ def main(stdscr):
             swin.erase()
             p = 0 
             offset = 0
+        if c == ord("o"):
+            # save result
+            with open('%s/arch/%s/configs/%s' % (sourcedir, srcarch, defconfig), 'w') as rfile:
+                for sym in kconf.unique_defined_syms:
+                    #if not sym.assignable and sym.type != STRING and sym.type != HEX:
+                        #rfile.write('IGNORE %s %d\n' % (sym.name, sym.type))
+                    #    continue
+                    if sym.user_value is None:
+                        continue
+                    if sym.str_value == "":
+                        continue
+                    if sym.str_value == 'n':
+                        rfile.write("# CONFIG_%s is not set\n" % sym.name)
+                    elif sym.type == 47:
+                        rfile.write('CONFIG_%s="%s"\n' % (sym.name, sym.str_value))
+                    else:
+                        rfile.write("CONFIG_%s=%s\n" % (sym.name, sym.str_value))
         if c == ord("s") or c == ord("S"):
             # save result
             with open('%s/config.out' % configdir, 'w') as rfile:
                 for sym in kconf.unique_defined_syms:
-                    if not sym.assignable and sym.type != 47 and sym.type != 27:
+                    #if not sym.assignable and sym.type != STRING and sym.type != HEX:
                         #rfile.write('IGNORE %s %d\n' % (sym.name, sym.type))
-                        continue
+                    #    continue
                     if sym.user_value is None and c == ord("s"):
                         continue
                     if sym.str_value == "":

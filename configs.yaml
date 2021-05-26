@@ -3,9 +3,63 @@ base:
     default:
       path: /usr/src/linux-test
 configs:
+  ARCH_GEMINI:
+    gemini_defconfig:
+      need: true
+  BLK_DEBUG_FS:
+    debug: true
+  DEBUG_AID_FOR_SYZBOT:
+    debug: true
+  DEBUG_FS:
+    debug: true
+  DEBUG_FS_ALLOW_ALL:
+    debug: true
+  DEBUG_FS_ALLOW_NONE:
+    debug: true
+  DEBUG_FS_DISALLOW_MOUNT:
+    debug: true
+  DEBUG_IRQFLAGS:
+    debug: true
+  DEBUG_KERNEL:
+    debug: true
+  DEBUG_LL_INCLUDE:
+    debug: true
+  DEBUG_SECTION_MISMATCH:
+    debug: true
+  DEBUG_TIMEKEEPING:
+    debug: true
+  DEBUG_USER:
+    debug: true
+  DEBUG_WX:
+    debug: true
+  DMABUF_DEBUG:
+    debug: true
+  DMADEVICES_DEBUG:
+    debug: true
+  DMA_API_DEBUG:
+    debug: true
+  DRM_DEBUG_MM:
+    debug: true
+  DYNAMIC_DEBUG:
+    debug: true
+  DYNAMIC_DEBUG_CORE:
+    debug: true
   GEMINI_ETHERNET:
     gemini_defconfig:
       need: true
+  GPIO_FTGPIO010:
+    gemini_defconfig:
+      need: true
+  HWMON_DEBUG_CHIP:
+    debug: true
+  I2C_DEBUG_ALGO:
+    debug: true
+  I2C_DEBUG_BUS:
+    debug: true
+  I2C_DEBUG_CORE:
+    debug: true
+  IOMMU_DEBUGFS:
+    debug: true
   MTD_CFI:
     gemini_defconfig:
       need: true
@@ -15,12 +69,30 @@ configs:
   NET_VENDOR_CORTINA:
     gemini_defconfig:
       need: true
+  PATA_FTIDE010:
+    gemini_defconfig:
+      need: true
+  PM_DEBUG:
+    debug: true
+  REGULATOR_DEBUG:
+    debug: true
+  RTC_DEBUG:
+    debug: true
   SATA_GEMINI:
     gemini_defconfig:
       need: true
   SECCOMP:
     harden: true
+  SECCOMP_CACHE_DEBUG:
+    debug: true
+  SERIAL_8250:
+    gemini_defconfig:
+      need: true
+  SLUB_DEBUG_ON:
+    debug: true
   STACKPROTECTOR:
     harden: true
   STACKPROTECTOR_STRONG:
     harden: true
+  USB_STORAGE_DEBUG:
+    debug: true
