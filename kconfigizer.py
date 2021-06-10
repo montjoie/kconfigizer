@@ -21,6 +21,15 @@ L_YELLOW = 6
 L_TGT = 7
 L_INPUT = 8
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--source", "-s", help="sourcename", type=str, default="default")
+parser.add_argument("--arch", "-a", help="arch", type=str, default=None)
+parser.add_argument("--defconfig", "-D", help="defconfig", type=str, default=None)
+parser.add_argument("--quiet", "-q", help="Quiet, do not print build log", action="store_true")
+parser.add_argument("--debug", "-d", help="Quiet, do not print build log", action="store_true")
+parser.add_argument("--local", "-l", help="Use local tree", action="store_true")
+args = parser.parse_args()
+
 configdir = os.path.expandvars("$HOME/.Konfig")
 configdir = os.path.expandvars(os.getcwd())
 
@@ -29,6 +38,15 @@ try:
     configs = yaml.safe_load(configfile)
 except IOError:
     configs = {}
+    configs["configs"] = {}
+    configs["base"] = {}
+    configs["base"]["sources"] = {}
+    if args.local:
+        configs["base"]["sources"]["local"] = {}
+        configs["base"]["sources"]["local"]["path"] = os.getcwd()
+        args.source = "local"
+    print("GENERATED")
+    print(configs)
 
 if not "base" in configs:
     print("ERROR: need base in %s/configs.yaml" % configdir)
@@ -36,14 +54,6 @@ if not "base" in configs:
 if not "sources" in configs["base"]:
     print("ERROR: need base/sources in %s/configs.yaml" % configdir)
     sys.exit(0)
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--source", "-s", help="sourcename", type=str, default="default")
-parser.add_argument("--arch", "-a", help="arch", type=str, default=None)
-parser.add_argument("--defconfig", "-D", help="defconfig", type=str, default=None)
-parser.add_argument("--quiet", "-q", help="Quiet, do not print build log", action="store_true")
-parser.add_argument("--debug", "-d", help="Quiet, do not print build log", action="store_true")
-args = parser.parse_args()
 
 if not args.source in configs["base"]["sources"]:
     print("ERROR: did not find %s in base/sources in %s/configs.yaml" % (args.source, configdir))
